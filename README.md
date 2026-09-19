@@ -97,6 +97,37 @@ def generate_text_from_ngram_model(
 
     (Note: Check the variable names inside your notebook's stub for generate_text_from_ngram_model. If the notebook already computes probabilities / candidates or provides a helper, adapt the variable names accordingly while keeping np.argmax(probs) for greedy and np.random.choice(..., p=...) for random).
 
+
+Replace the last cell with this complete:
+
+
+# Instantiate tokenizer first so it exists when building the n-gram model
+tokenizer = SimpleArabicCharacterTokenizer()
+
+# Train n-gram model from dataset.
+n = 4 # Size of n-grams.
+ngram_model = build_ngram_model(dataset, n, tokenizer)
+
+# Generate text.
+start_prompt = "يوم واحد"
+print(f"Start prompt is:\n\t{start_prompt}")
+n_tokens = 15 # Specify the number of new tokens to generate.
+
+generated_text = generate_text_from_ngram_model(
+    start_prompt,
+    n_tokens,
+    ngram_model,
+    tokenizer,
+    sampling_mode="random")
+
+print(f"Text generated is:\n\t{display_arabic(generated_text)}")
+
+# Do not remove or modify this logging call, it will be used for tracking purposes
+logger.info(f'Task 3: The total word count for the generated text is: {len(generated_text.split())}')
+
+
+
+
 Run the test cell to verify, then click Check my progress for Task 3.
 
 Task 4: Prepare the Dataset for Training
