@@ -162,6 +162,46 @@ def segment_encoded_sequence(
     
 Verification: Run the final test blocks to produce the arrays and verify all green checkmarks on the lab assessment page.
 
+Step 4:
+
+
+def segment_encoded_sequence(
+        sequence: list[int],
+        max_length: int,
+        n_overlap: int
+) -> list[list[int]]:
+    """Segment a long encoded sequence into overlapping subsequences of maximum
+    length.
+
+    Divides the input sequence into chunks of max_length tokens with specified
+    overlap between consecutive segments. The final segment may be shorter than
+    max_length if insufficient tokens remain.
+
+    Args:
+        sequence: List of token indices to segment.
+        max_length: Maximum length for each subsequence.
+        n_overlap: Number of tokens to overlap between consecutive segments.
+
+    Returns:
+        List of subsequences, each with at most max_length token indices. All
+        segments except possibly the last will have exactly max_length tokens.
+    """
+    subsequences = []
+
+    if len(sequence) <= max_length:
+        return [sequence]
+
+    step = max_length - n_overlap
+
+    for i in range(0, len(sequence), step):
+        chunk = sequence[i:i + max_length]
+        subsequences.append(chunk)
+        if i + max_length >= len(sequence):
+            break
+
+    return subsequences
+
+
 Step 5:
 
 def create_training_sequences(
