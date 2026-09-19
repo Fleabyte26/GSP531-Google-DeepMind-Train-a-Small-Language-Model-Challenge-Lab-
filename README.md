@@ -63,15 +63,15 @@ def generate_text_from_ngram_model(
     start_tokens = tokenizer.character_tokenize(start_prompt)
     generated_tokens = start_tokens + []
 
-    # Determine context length (n - 1) from any key in the model
+    # Determine context length (n - 1) from the keys of the model
     sample_context = next(iter(ngram_model.keys()))
     context_len = len(sample_context)
 
     for _ in range(n_tokens):
-        # Extract the last context_len characters as the string key
+        # Extract the current context string from the end of generated tokens
         current_context = tokenizer.join_text(generated_tokens[-context_len:])
 
-        # Look up candidate next-token distribution for the current context
+        # Look up next token distribution for the current context
         candidates = ngram_model.get(current_context, {})
 
         if not candidates:
@@ -84,19 +84,16 @@ def generate_text_from_ngram_model(
             # Pick token with the highest probability
             next_token = tokens[np.argmax(probabilities)]
         elif sampling_mode == "random":
-            # Normalize probabilities if necessary and sample
-            probs = np.array(probabilities, dtype=np.float64)
-            probs = probs / probs.sum()
-            next_token = np.random.choice(tokens, p=probs)
+            # Sample using random.choices with probability weights
+            next_token = random.choices(tokens, weights=probabilities, k=1)[0]
         else:
             raise ValueError(f"Unsupported sampling mode: {sampling_mode}")
 
         generated_tokens.append(next_token)
 
-    # Convert tokens back to string using the tokenizer method
+    # Convert tokens back to string
     generated_text = tokenizer.join_text(generated_tokens)
     return generated_text
-
 
     (Note: Check the variable names inside your notebook's stub for generate_text_from_ngram_model. If the notebook already computes probabilities / candidates or provides a helper, adapt the variable names accordingly while keeping np.argmax(probs) for greedy and np.random.choice(..., p=...) for random).
 
