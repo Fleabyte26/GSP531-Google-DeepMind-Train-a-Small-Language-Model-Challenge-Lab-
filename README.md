@@ -38,6 +38,7 @@ Task 3: Generate Text from an N-gram Model
 In the generate_text_from_ngram_model function, implement the sampling switch (greedy vs. random sampling from the transition probabilities/counts) and return the joined tokens:
 
 
+
 def generate_text_from_ngram_model(
     start_prompt: str,
     n_tokens: int,
