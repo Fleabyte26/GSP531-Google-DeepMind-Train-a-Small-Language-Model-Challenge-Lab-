@@ -39,6 +39,11 @@ In the generate_text_from_ngram_model function, implement the sampling switch (g
 
 
 
+### Task 3: Build N-gram Text Generation
+
+In the `generate_text_from_ngram_model` function, implement the sampling switch (greedy vs. random sampling from the transition probabilities/counts) and return the joined tokens:
+
+```python
 def generate_text_from_ngram_model(
     start_prompt: str,
     n_tokens: int,
@@ -95,9 +100,7 @@ def generate_text_from_ngram_model(
     # Convert tokens back to string
     generated_text = tokenizer.join_text(generated_tokens)
     return generated_text
-
-    (Note: Check the variable names inside your notebook's stub for generate_text_from_ngram_model. If the notebook already computes probabilities / candidates or provides a helper, adapt the variable names accordingly while keeping np.argmax(probs) for greedy and np.random.choice(..., p=...) for random).
-
+```
 
 Replace the last cell with this complete:
 
