@@ -1,24 +1,44 @@
-# GSP531-Google-DeepMind-Train-a-Small-Language-Model-Challenge-Lab-
-Google DeepMind: Train a Small Language Model (Challenge Lab)
+# GSP531: Build Your Own Small Language Model — Challenge Lab Solution
 
-Task 1: Setup & Import
-In the Google Cloud Console, navigate to Agent Platform > Notebooks > Colab Enterprise > My notebooks.
+A complete walkthrough, script solutions, and troubleshooting guide for **Google Cloud Challenge Lab GSP531: Develop a Chatbot for the Arabic-Speaking Market**.
 
-Select your assigned region and click Import.
+---
 
-Choose Cloud Storage, provide the notebook path given on the lab instructions page, and click Import.
+## 📋 Lab Overview
+* **Lab ID:** `GSP531`
+* **Track:** *Google DeepMind: 01 Build Your Own Small Language Model*
+* **Core Topics Tested:**
+  * **Character Tokenizer:** Encode and decode Arabic text at the character level.
+  * **N-gram Text Generator:** Build an autoregressive generation loop supporting greedy and random sampling.
+  * **Data Pipeline:** Segment sequences with overlapping windows and format input/target arrays for training.
 
-Once gdm_challenge_lab.ipynb opens, click the top right runtime expander, choose Connect to an existing runtime, and connect to colab-cpu-runtime.
+---
 
-Run the initial cells under Task 1 to import libraries and load the Arabic stories dataset.
+## 🛠️ Step-by-Step Implementation
 
-Task 2: Configure the Character Tokenizer
-In the SimpleArabicCharacterTokenizer class cell, complete the two methods:
+### Task 1: Environment Setup & Notebook Import
 
+1. In the Google Cloud Console, navigate to:
+   ```text
+   Agent Platform > Notebooks > Colab Enterprise > My notebooks
+   ```
+2. Set the designated lab **Region** and click **Import**.
+3. Select **Cloud Storage**, provide the `notebook_file_path` assigned by your lab environment, and import the notebook.
+4. Click the connection menu in the upper right, choose **Connect to an existing runtime**, and select `colab-cpu-runtime`.
+5. Execute the initial cells to install packages and load the dataset.
 
+> **Important Note on Kernel Restart:**  
+> When running the cell containing `app.kernel.do_shutdown(True)`, Colab will notify you that the kernel crashed or restarted. This is expected. Do **not** re-run that restart cell; simply continue to the next cell (`# Packages used.`) to resume execution.
+
+---
+
+### Task 2: Configure the Character Tokenizer
+
+In the `SimpleArabicCharacterTokenizer` class cell, complete the methods to tokenize and join characters:
+
+```python
 class SimpleArabicCharacterTokenizer:
     def __init__(self):
-        # Existing initialization logic provided in the notebook
         pass
 
     def character_tokenize(self, text: str) -> list[str]:
@@ -30,18 +50,15 @@ class SimpleArabicCharacterTokenizer:
         """Joins a list of character tokens back into a single string without padding."""
         # [TODO - Add your code here]
         return "".join(tokens)
+```
 
+Run the test cell directly beneath it and verify Task 2 in the lab console.
 
-Run the test cell below the class to ensure it passes, then click Check my progress for Task 2.
-
-Task 3: Generate Text from an N-gram Model
-In the generate_text_from_ngram_model function, implement the sampling switch (greedy vs. random sampling from the transition probabilities/counts) and return the joined tokens:
-
-
+---
 
 ### Task 3: Build N-gram Text Generation
 
-In the `generate_text_from_ngram_model` function, implement the sampling switch (greedy vs. random sampling from the transition probabilities/counts) and return the joined tokens:
+In the `generate_text_from_ngram_model` function cell, implement context window extraction and sampling modes:
 
 ```python
 def generate_text_from_ngram_model(
@@ -102,9 +119,10 @@ def generate_text_from_ngram_model(
     return generated_text
 ```
 
-Replace the last cell with this complete:
+#### Task 3 Test Cell Fix
+If the test cell fails with `NameError: name 'tokenizer' is not defined`, ensure `tokenizer` is instantiated before calling `build_ngram_model`:
 
-
+```python
 # Instantiate tokenizer first so it exists when building the n-gram model
 tokenizer = SimpleArabicCharacterTokenizer()
 
@@ -128,47 +146,17 @@ print(f"Text generated is:\n\t{display_arabic(generated_text)}")
 
 # Do not remove or modify this logging call, it will be used for tracking purposes
 logger.info(f'Task 3: The total word count for the generated text is: {len(generated_text.split())}')
+```
 
+---
 
+### Task 4: Prepare Dataset for Training
 
+#### Part 1: Sequence Segmentation (`segment_encoded_sequence`)
 
-Run the test cell to verify, then click Check my progress for Task 3.
+Chunk the sequence using `max_length` with step size `max_length - n_overlap`:
 
-Task 4: Prepare the Dataset for Training
-Part 1: Build segment_encoded_sequence
-This function breaks a sequence of token IDs into overlapping subsequences of up to max_length. For language model inputs/targets, standard non-overlapping or stride-based chunking is used:
-
-
-def segment_encoded_sequence(
-    encoded_sequence: list[int], 
-    max_length: int, 
-    overlap: int = 0
-) -> list[list[int]]:
-    """Segments an encoded sequence of token IDs into subsequences of length max_length
-
-    with a specified token overlap between consecutive chunks.
-    """
-    # [TODO - Add your code here]
-    if len(encoded_sequence) <= max_length:
-        return [encoded_sequence]
-
-    step = max_length - overlap
-    subsequences = []
-
-    for i in range(0, len(encoded_sequence), step):
-        chunk = encoded_sequence[i:i + max_length]
-        subsequences.append(chunk)
-        if i + max_length >= len(encoded_sequence):
-            break
-
-    return subsequences
-
-    
-Verification: Run the final test blocks to produce the arrays and verify all green checkmarks on the lab assessment page.
-
-Step 4 2nd step/box:
-
-
+```python
 def segment_encoded_sequence(
         sequence: list[int],
         max_length: int,
@@ -204,10 +192,13 @@ def segment_encoded_sequence(
             break
 
     return subsequences
+```
 
+#### Part 2: Training Sequences & Shifting (`create_training_sequences`)
 
-Step 5:
+Encode each story, segment it, pad the sequences using Keras, and split into inputs and targets ($y_t = x_{t+1}$):
 
+```python
 def create_training_sequences(
         dataset: list[str],
         context_length: int,
@@ -241,14 +232,7 @@ def create_training_sequences(
     pad_token_id = tokenizer.pad_token_id
     encoded_tokens = []
 
-    # Add your code here to:
-    #
-    # 1. Iterate over the entries in the dataset.
-    # 2. For each dataset entry (text), encode the text into a sequence of token ids.
-    # 3. Segment the sequence of token ids into overlapping segments or parts.
-    # 4. Include the segments in the list of encoded tokens.
-    # 5. Ensure that `encoded_tokens` is a list of lists, where each inner list
-    #    represents a sequence of scalars (e.g., integers for tokenized text).
+    # Iterate over dataset, encode, and segment into overlapping parts
     for text in dataset:
         encoded_seq = tokenizer.encode(text)
         segments = segment_encoded_sequence(encoded_seq, segmentation_length, n_overlap)
@@ -265,9 +249,10 @@ def create_training_sequences(
     inputs = padded_sequences[:, :-1]
     targets = padded_sequences[:, 1:]
     return inputs, targets
-💡 Troubleshooting & Common Pitfalls
-Runtime Disconnects: Colab Enterprise sessions can time out if idle. Check the top-right indicator to verify colab-cpu-runtime is active before executing code cells.
+```
 
-Array Shapes: Ensure targets and inputs match (N, max_length - 1) after accounting for next-token shift offsets.
+---
 
-Pad Tokens: Ensure the default padding ID matches the notebook specification (0 or tokenizer-defined <pad>).
+## 💡 Troubleshooting Checklist
+* **Missing Checkmarks:** Make sure to execute the cell containing `logger.info(...)` located immediately below each task. The assessment scripts track these logs to award credit.
+* **Kernel Disconnects:** If idle, Colab Enterprise may sleep. Verify the top-right status bar shows `colab-cpu-runtime` is active before running downstream cells.
