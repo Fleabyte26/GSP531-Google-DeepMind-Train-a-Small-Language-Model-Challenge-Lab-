@@ -38,19 +38,41 @@ Task 3: Generate Text from an N-gram Model
 In the generate_text_from_ngram_model function, implement the sampling switch (greedy vs. random sampling from the transition probabilities/counts) and return the joined tokens:
 
 
-def generate_text_from_ngram_model(model, prompt, max_tokens=100, sampling_mode="greedy"):
-    """
-    Generates text from an n-gram model using greedy or random sampling.
-    """
-    n = model.n if hasattr(model, 'n') else getattr(model, 'order', 3)
-    generated_tokens = list(prompt)
+def generate_text_from_ngram_model(
+    start_prompt: str,
+    n_tokens: int,
+    ngram_model: dict[str, dict[str, float]],
+    tokenizer: SimpleArabicCharacterTokenizer,
+    sampling_mode: Literal["random", "greedy"] = "random"
+) -> str:
+    """Generate text based on a starting prompt using an ngram model.
 
-    for _ in range(max_tokens):
-        # Extract the current context (last n-1 tokens)
-        context = tuple(generated_tokens[-(n - 1):]) if n > 1 else ()
+    Args:
+        start_prompt: The initial prompt to start the generation.
+        n_tokens: The number of tokens to generate after the prompt.
+        ngram_model: An ngram model mapping contexts of n-1 tokens to distributions
+            over next token.
+        tokenizer: The tokenizer to encode and decode text.
+        sampling_mode: Whether to use random or greedy sampling. Supported
+            options are "random" and "greedy".
 
-        # Retrieve next token distribution / candidates from the model
-        candidates = model.get_candidates(context) if hasattr(model, 'get_candidates') else model.get(context, {})
+    Returns:
+        The generated text from the prompt.
+    """
+    # Tokenize the starting prompt.
+    start_tokens = tokenizer.character_tokenize(start_prompt)
+    generated_tokens = start_tokens + []
+
+    # Determine context length (n - 1) from any key in the model
+    sample_context = next(iter(ngram_model.keys()))
+    context_len = len(sample_context)
+
+    for _ in range(n_tokens):
+        # Extract the last context_len characters as the string key
+        current_context = tokenizer.join_text(generated_tokens[-context_len:])
+
+        # Look up candidate next-token distribution for the current context
+        candidates = ngram_model.get(current_context, {})
 
         if not candidates:
             break
@@ -58,9 +80,8 @@ def generate_text_from_ngram_model(model, prompt, max_tokens=100, sampling_mode=
         tokens = list(candidates.keys())
         probabilities = list(candidates.values())
 
-        # [TODO - Add your code here: Support either random or greedy sampling]
         if sampling_mode == "greedy":
-            # Select the token with the highest probability/count
+            # Pick token with the highest probability
             next_token = tokens[np.argmax(probabilities)]
         elif sampling_mode == "random":
             # Normalize probabilities if necessary and sample
@@ -72,8 +93,9 @@ def generate_text_from_ngram_model(model, prompt, max_tokens=100, sampling_mode=
 
         generated_tokens.append(next_token)
 
-    # Return generated tokens as a single joined string
-    return "".join(generated_tokens)
+    # Convert tokens back to string using the tokenizer method
+    generated_text = tokenizer.join_text(generated_tokens)
+    return generated_text
 
 
     (Note: Check the variable names inside your notebook's stub for generate_text_from_ngram_model. If the notebook already computes probabilities / candidates or provides a helper, adapt the variable names accordingly while keeping np.argmax(probs) for greedy and np.random.choice(..., p=...) for random).
