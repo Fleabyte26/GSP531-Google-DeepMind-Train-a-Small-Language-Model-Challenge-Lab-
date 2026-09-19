@@ -134,6 +134,66 @@ def segment_encoded_sequence(
     
 Verification: Run the final test blocks to produce the arrays and verify all green checkmarks on the lab assessment page.
 
+Step 5:
+
+def create_training_sequences(
+        dataset: list[str],
+        context_length: int,
+        n_overlap: int,
+        tokenizer: EnhancedTokenizer
+) -> tuple[np.ndarray, np.ndarray]:
+    """Create training input-target sequence pairs from text dataset.
+
+    Encodes text data into token sequences, segments them into fixed-length
+    overlapping windows, and creates input-target pairs for language modeling
+    where targets are inputs shifted by one position.
+
+    Args:
+        dataset: List of text strings to process into training sequences.
+        context_length: Maximum sequence length for model input.
+        n_overlap: Number of tokens to overlap between consecutive segments.
+        tokenizer: Tokenizer object with encode method for text-to-tokens
+            conversion.
+
+    Returns:
+        Tuple of (inputs, targets) where:
+        - inputs: Array of token sequences of length context_length.
+        - targets: Array of target sequences (inputs shifted by one position).
+    """
+
+    segmentation_length = context_length + 1
+    # The segments are one token longer than the model's maximum input length,
+    # because the target (next) tokens to predict are the input tokens shifted
+    # by one position.
+
+    pad_token_id = tokenizer.pad_token_id
+    encoded_tokens = []
+
+    # Add your code here to:
+    #
+    # 1. Iterate over the entries in the dataset.
+    # 2. For each dataset entry (text), encode the text into a sequence of token ids.
+    # 3. Segment the sequence of token ids into overlapping segments or parts.
+    # 4. Include the segments in the list of encoded tokens.
+    # 5. Ensure that `encoded_tokens` is a list of lists, where each inner list
+    #    represents a sequence of scalars (e.g., integers for tokenized text).
+    for text in dataset:
+        encoded_seq = tokenizer.encode(text)
+        segments = segment_encoded_sequence(encoded_seq, segmentation_length, n_overlap)
+        encoded_tokens.extend(segments)
+
+    # Create padded sequences one token longer than the maximum input length.
+    padded_sequences = keras.preprocessing.sequence.pad_sequences(
+            encoded_tokens,
+            maxlen=segmentation_length,
+            padding="post",
+            value=pad_token_id)
+
+    # Create inputs and targets from padded sequences.
+    inputs = padded_sequences[:, :-1]
+    targets = padded_sequences[:, 1:]
+    return inputs, targets
+
 💡 Troubleshooting & Common Pitfalls
 Runtime Disconnects: Colab Enterprise sessions can time out if idle. Check the top-right indicator to verify colab-cpu-runtime is active before executing code cells.
 
