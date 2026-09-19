@@ -162,7 +162,7 @@ def segment_encoded_sequence(
     
 Verification: Run the final test blocks to produce the arrays and verify all green checkmarks on the lab assessment page.
 
-Step 4:
+Step 4 2nd step/box:
 
 
 def segment_encoded_sequence(
