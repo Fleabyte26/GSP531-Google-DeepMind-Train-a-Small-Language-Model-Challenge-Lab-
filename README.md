@@ -107,56 +107,32 @@ Part 1: Build segment_encoded_sequence
 This function breaks a sequence of token IDs into overlapping subsequences of up to max_length. For language model inputs/targets, standard non-overlapping or stride-based chunking is used:
 
 
-def segment_encoded_sequence(encoded_sequence: list[int], max_length: int) -> list[list[int]]:
-    """
-    Segments an encoded sequence of token IDs into subsequences of length max_length.
-    The final subsequence can be shorter.
+def segment_encoded_sequence(
+    encoded_sequence: list[int], 
+    max_length: int, 
+    overlap: int = 0
+) -> list[list[int]]:
+    """Segments an encoded sequence of token IDs into subsequences of length max_length
+
+    with a specified token overlap between consecutive chunks.
     """
     # [TODO - Add your code here]
+    if len(encoded_sequence) <= max_length:
+        return [encoded_sequence]
+
+    step = max_length - overlap
     subsequences = []
-    for i in range(0, len(encoded_sequence), max_length):
-        subsequences.append(encoded_sequence[i:i + max_length])
+
+    for i in range(0, len(encoded_sequence), step):
+        chunk = encoded_sequence[i:i + max_length]
+        subsequences.append(chunk)
+        if i + max_length >= len(encoded_sequence):
+            break
+
     return subsequences
 
-
-    Part 2: Training Sequences & Shifting (create_training_sequences)
-
-
-    def create_training_sequences(dataset, tokenizer, max_length: int, pad_token_id: int = 0):
-    """
-    Encodes, segments, pads sequences, and splits into input (X) and target (y) arrays.
-    """
-    all_subsequences = []
-
-    for text in dataset:
-        encoded = tokenizer.encode(text) if hasattr(tokenizer, 'encode') else [tokenizer.vocab[c] for c in text if c in tokenizer.vocab]
-        subsequences = segment_encoded_sequence(encoded, max_length)
-        all_subsequences.extend(subsequences)
-
-    inputs = []
-    targets = []
-
-    for seq in all_subsequences:
-        if len(seq) < 2:
-            continue
-
-        # Shift sequences: input gets seq[:-1], target gets seq[1:]
-        inp = seq[:-1]
-        tar = seq[1:]
-
-        # Pad remaining length to (max_length - 1)
-        pad_len = (max_length - 1) - len(inp)
-        if pad_len > 0:
-            inp = inp + [pad_token_id] * pad_len
-            tar = tar + [pad_token_id] * pad_len
-
-        inputs.append(inp)
-        targets.append(tar)
-
-    return np.array(inputs), np.array(targets)
-
-
-    Verification: Run the final test blocks to produce the arrays and verify all green checkmarks on the lab assessment page.
+    
+Verification: Run the final test blocks to produce the arrays and verify all green checkmarks on the lab assessment page.
 
 💡 Troubleshooting & Common Pitfalls
 Runtime Disconnects: Colab Enterprise sessions can time out if idle. Check the top-right indicator to verify colab-cpu-runtime is active before executing code cells.
