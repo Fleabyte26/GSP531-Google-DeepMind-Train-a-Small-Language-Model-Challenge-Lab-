@@ -261,7 +261,6 @@ def create_training_sequences(
     inputs = padded_sequences[:, :-1]
     targets = padded_sequences[:, 1:]
     return inputs, targets
-
 💡 Troubleshooting & Common Pitfalls
 Runtime Disconnects: Colab Enterprise sessions can time out if idle. Check the top-right indicator to verify colab-cpu-runtime is active before executing code cells.
 
